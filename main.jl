@@ -11,6 +11,7 @@ include("graham.jl")
 include("quickhull.jl")
 include("experimentos.jl")
 include("experimento_polares.jl")
+include("verificar_envolventes.jl")
 
 println()
 println("==============================================")
@@ -102,6 +103,9 @@ mostrar_envolvente(
     envolvente_quickhull
 )
 
+puntos_a_verificar = generar_puntos(1000)
+
+verificar_envolventes(puntos_a_verificar)
 
 # ---------------------------------------------------------
 # Ejecutar experimentos
