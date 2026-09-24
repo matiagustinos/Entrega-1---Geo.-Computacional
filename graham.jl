@@ -1,17 +1,12 @@
 # =========================================================
 # graham.jl
-# Graham Scan optimizado
-#
-# No utiliza atan().
-# El orden angular se determina mediante producto cruzado.
+# Graham Scan utilizando atan para ordenar por angulo
 # =========================================================
 
 
 # ---------------------------------------------------------
 # Buscar pivote
-#
-# Menor coordenada Y.
-# En caso de empate, menor coordenada X.
+# Menor Y, y en empate menor X
 # ---------------------------------------------------------
 
 function encontrar_pivote(puntos::Vector{Punto})
@@ -28,7 +23,6 @@ function encontrar_pivote(puntos::Vector{Punto})
                puntos[i].x < puntos[indice].x
 
             indice = i
-
         end
     end
 
@@ -37,42 +31,15 @@ end
 
 
 # ---------------------------------------------------------
-# Comparar dos puntos según su ángulo respecto al pivote
-#
-# En lugar de calcular atan(), usamos producto cruzado.
+# Calcular angulo respecto al pivote
 # ---------------------------------------------------------
 
-function menor_angulo(
-    pivote::Punto,
-    a::Punto,
-    b::Punto
-)
+function angulo(pivote::Punto, p::Punto)
 
-    cruzado = producto_cruzado(
-        pivote,
-        a,
-        b
+    return atan(
+        p.y - pivote.y,
+        p.x - pivote.x
     )
-
-
-    # Si el producto cruzado es positivo,
-    # a aparece antes que b en sentido antihorario.
-    if cruzado > 0
-
-        return true
-
-
-    # Si están en la misma dirección,
-    # ponemos primero el más cercano.
-    elseif cruzado == 0
-
-        return distancia2(pivote, a) <
-               distancia2(pivote, b)
-
-    end
-
-
-    return false
 end
 
 
@@ -84,16 +51,12 @@ function graham_scan(puntos::Vector{Punto})
 
     n = length(puntos)
 
-
     if n < 3
         return copy(puntos)
     end
 
 
-    # -----------------------------------------------------
-    # 1. Encontrar pivote
-    # -----------------------------------------------------
-
+    # 1. Buscar pivote
     indice_pivote =
         encontrar_pivote(puntos)
 
@@ -101,14 +64,8 @@ function graham_scan(puntos::Vector{Punto})
         puntos[indice_pivote]
 
 
-    # -----------------------------------------------------
-    # 2. Crear arreglo de puntos excepto el pivote
-    # -----------------------------------------------------
-
+    # 2. Copiar los demas puntos
     otros = Punto[]
-
-    sizehint!(otros, n - 1)
-
 
     for i in 1:n
 
@@ -118,33 +75,25 @@ function graham_scan(puntos::Vector{Punto})
                 otros,
                 puntos[i]
             )
-
         end
     end
 
 
-    # -----------------------------------------------------
-    # 3. Ordenar por ángulo SIN utilizar atan()
-    # -----------------------------------------------------
-
+    # 3. Ordenar por angulo
+    #
+    # Si dos puntos tienen el mismo angulo,
+    # se ordenan por distancia al pivote
     sort!(
         otros,
-        lt = (a, b) ->
-            menor_angulo(
-                pivote,
-                a,
-                b
-            )
+        by = p -> (
+            angulo(pivote, p),
+            distancia2(pivote, p)
+        )
     )
 
 
-    # -----------------------------------------------------
     # 4. Crear pila
-    # -----------------------------------------------------
-
     pila = Punto[]
-
-    sizehint!(pila, n)
 
     push!(
         pila,
@@ -152,15 +101,9 @@ function graham_scan(puntos::Vector{Punto})
     )
 
 
-    # -----------------------------------------------------
     # 5. Recorrer puntos ordenados
-    # -----------------------------------------------------
-
     for p in otros
 
-
-        # Mientras tengamos al menos dos puntos
-        # comprobamos el giro.
         while length(pila) >= 2
 
             p1 =
@@ -171,27 +114,26 @@ function graham_scan(puntos::Vector{Punto})
 
 
             giro =
-                producto_cruzado(
+                orientacion(
                     p1,
                     p2,
                     p
                 )
 
 
-            # Giro antihorario:
-            # el punto pertenece por ahora
-            # a la envolvente.
+            # Si gira a la izquierda,
+            # el punto anterior se conserva
             if giro > 0
 
                 break
 
+            else
+
+                # Si gira a la derecha o es colineal,
+                # eliminamos el ultimo punto
+                pop!(pila)
+
             end
-
-
-            # Giro horario o colineal:
-            # eliminamos el último punto.
-            pop!(pila)
-
         end
 
 
@@ -199,7 +141,6 @@ function graham_scan(puntos::Vector{Punto})
             pila,
             p
         )
-
     end
 
 

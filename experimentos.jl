@@ -72,8 +72,7 @@ function ejecutar_experimentos()
         50000,
         70000,
         100000,
-        150000,
-        200000
+        150000
     ]
 
 

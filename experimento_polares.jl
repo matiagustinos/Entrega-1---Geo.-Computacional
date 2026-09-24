@@ -168,9 +168,7 @@ function ejecutar_experimentos_polares()
         50000,
         70000,
         100000,
-        125000,
-        150000,
-        200000
+        150000
     ]
 
 
